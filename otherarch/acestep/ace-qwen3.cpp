@@ -1345,11 +1345,21 @@ std::string acestep_prepare_request(const music_generation_inputs inputs)
         return "";
     }
 
-    int seed = req.seed;
-    if (seed <= 0 || seed==0xFFFFFFFF)
-    {
-        seed = (((uint32_t)time(NULL)) % 1000000u);
+    uint32_t seed;
+
+    if (req.seed <= 0) {
+        auto now = std::chrono::high_resolution_clock::now().time_since_epoch().count();
+
+        std::mt19937 seeder((uint64_t)now);
+        seed = seeder(); // full 32-bit range
     }
+    else {
+        seed = (uint32_t)req.seed;
+    }
+
+    if (seed == 0)
+        seed = 1;
+
     req.seed = seed;
     acestep_lm_rng = std::mt19937(seed);
 
